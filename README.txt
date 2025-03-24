@@ -1,15 +1,55 @@
-Database contains a sample of 82498 subtitle files from opensubtitles.org. 
+🎙️ Movie Subtitle Search via Audio (Whisper + ChromaDB + Gemini AI)
+This project transcribes audio files using OpenAI's Whisper, then searches for relevant movie subtitles stored in a ChromaDB vector database. Google Gemini AI enhances subtitle extraction and matching.
 
-Most of the subtitles are of movies and tv-series which were released after 1990 and before 2024.
+🚀 Steps to Run the Project
+1️⃣ Install Dependencies
+Run the following command to install all required Python libraries:
 
-Database File Name: eng_subtitles_database.db
-Database contains a table called 'zipfiles' with three columns.
-1. num: Unique Subtitle ID reference for www.opensubtitles.org 
-2. name: Subtitle File Name
-3. content: Subtitle file were compressed and stored as a binary using 'latin-1' encoding.
+pip install torch whisper sentence-transformers chromadb numpy scikit-learn google-generativeai
+2️⃣ Install & Verify FFmpeg (Required for Whisper)
+Whisper requires FFmpeg to process audio files. Install and check it using:
 
+sudo apt update
+sudo apt install ffmpeg
+ffmpeg -version  # Ensure FFmpeg is installed
+3️⃣ Set Up ChromaDB for Subtitle Storage
+Initialize ChromaDB for efficient search:
 
+import chromadb
 
-You can use 'num' to get more details about each subtitle by going to the following link:
-https://www.opensubtitles.org/en/subtitles/{num}
-**Replace {num} with Unique Subtitle ID.
+chroma_client = chromadb.PersistentClient(path="./subtitle_chromadb")
+collection = chroma_client.create_collection(name="subtitles")
+4️⃣ Transcribe an Audio File
+Use OpenAI's Whisper model to convert speech to text:
+
+transcript = transcribe_audio_whisper("your_audio_file.mp3")
+print(transcript)
+5️⃣ Search for Matching Movies Based on Subtitles
+Retrieve the top 5 most similar movies:
+
+find_movie_by_subtitle(transcript, top_k=5)
+6️⃣ Enable Google Gemini AI for Improved Matching
+Sign up for Google Gemini API, get your API key, and configure it:
+
+import google.generativeai as genai
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
+7️⃣ Convert Audio Format (If Needed)
+If your audio file isn't working, convert it to a compatible format using FFmpeg:
+
+ffmpeg -i your_audio.mp3 -ar 16000 -ac 1 -c:a pcm_s16le output.wav
+Then, update your Python script to use output.wav.
+
+8️⃣ Run Everything Together
+AUDIO_PATH = "your_audio_file.mp3"
+transcript_text = transcribe_audio_whisper(AUDIO_PATH)
+
+if transcript_text:
+    find_movie_by_subtitle(transcript_text, top_k=10, similarity_threshold=0.5)
+else:
+    print("❌ No transcript generated. Check the audio file!")
+🛠 Troubleshooting
+❌ "Failed to load audio: FFmpeg error"
+✔️ Solution: Reinstall FFmpeg and convert the audio format (Step 7).
+
+❌ "No matching subtitles found!"
+✔️ Solution: Increase top_k or lower similarity_threshold in find_movie_by_subtitle().
